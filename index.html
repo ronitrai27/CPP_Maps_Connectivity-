@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Road Network &amp; Map Navigator — Graph Visualizer</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <!-- Top Navigation Header -->
+    <header class="topbar">
+      <div class="brand">
+        <span class="brand-title">Road Network &amp; Map Navigator</span>
+        <span class="brand-subtitle">Graph Engine: BFS &amp; Dijkstra</span>
+      </div>
+
+      <div class="topbar-stats">
+        <div class="stat-pill">
+          Cities (Vertices): <strong id="statCities">23</strong>
+        </div>
+        <div class="stat-pill">
+          Roads (Edges): <strong id="statRoads">30</strong>
+        </div>
+        <div class="stat-pill">
+          Networks (Components): <strong id="statComponents">3</strong>
+        </div>
+      </div>
+
+      <div class="topbar-actions">
+        <button
+          class="btn btn-sm"
+          id="btnAutoDemo"
+          title="Step-by-step showcase of all features"
+        >
+          Run Auto-Demo
+        </button>
+        <button class="btn btn-sm" id="btnClearHighlights">
+          Clear Highlight
+        </button>
+        <button
+          class="btn btn-sm"
+          id="btnResetMap"
+          title="Restore original 23 cities &amp; 30 roads"
+        >
+          Reset Default Map
+        </button>
+      </div>
+    </header>
+
+    <!-- Main 3-Column Workspace -->
+    <main class="workspace">
+      <!-- LEFT SIDEBAR: Controls & Operations -->
+      <aside class="sidebar-left">
+        <!-- Section 1: Route Planner (Options 3, 4, 5) -->
+        <section class="panel-section">
+          <div class="section-header">
+            <span class="section-title">1. Route Planner</span>
+            <button
+              class="btn btn-sm"
+              id="btnSwapCities"
+              title="Swap Source and Destination"
+            >
+              Swap ⇄
+            </button>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="selectFrom">From City (Source)</label>
+              <select id="selectFrom"></select>
+            </div>
+            <div class="field-group">
+              <label for="selectTo">To City (Destination)</label>
+              <select id="selectTo"></select>
+            </div>
+          </div>
+
+          <div class="btn-grid-2">
+            <button class="btn btn-dijkstra" id="btnDijkstraRoute">
+              Shortest km (Dijkstra)
+            </button>
+            <button class="btn btn-bfs" id="btnBfsRoute">
+              Fewest Roads (BFS)
+            </button>
+          </div>
+          <button class="btn btn-primary btn-block" id="btnCompareRoutes">
+            Compare BFS vs Dijkstra
+          </button>
+
+          <div class="preset-list">
+            <span
+              class="preset-chip"
+              data-from="Delhi"
+              data-to="Mumbai"
+              data-action="compare"
+              >Delhi → Mumbai (Diff)</span
+            >
+            <span
+              class="preset-chip"
+              data-from="Jaipur"
+              data-to="Mumbai"
+              data-action="compare"
+              >Jaipur → Mumbai (Diff)</span
+            >
+            <span
+              class="preset-chip"
+              data-from="Delhi"
+              data-to="Kochi"
+              data-action="dijkstra"
+              >Delhi → Kochi</span
+            >
+            <span
+              class="preset-chip"
+              data-from="Delhi"
+              data-to="Manali"
+              data-action="dijkstra"
+              >Delhi → Manali (Isolated)</span
+            >
+          </div>
+        </section>
+
+        <!-- Section 2: Single-Source & Network Analysis (Options 6, 7, 8) -->
+        <section class="panel-section">
+          <div class="section-header">
+            <span class="section-title"
+              >2. Graph Traversal &amp; Connectivity</span
+            >
+          </div>
+
+          <div class="field-group" style="margin-bottom: 8px">
+            <label for="selectStartCity"
+              >Start City for Traversal / Distances</label
+            >
+            <select id="selectStartCity"></select>
+          </div>
+
+          <div class="btn-grid-2">
+            <button class="btn" id="btnAllDistances">
+              All Distances (Dijkstra)
+            </button>
+            <button class="btn" id="btnBfsTraversal">
+              Level Traversal (BFS)
+            </button>
+          </div>
+          <button class="btn btn-block" id="btnConnectivity">
+            Check Network Connectivity (Components)
+          </button>
+        </section>
+
+        <!-- Section 3: Road Closure Simulation (Option 9) -->
+        <section class="panel-section">
+          <div class="section-header">
+            <span class="section-title">3. Road Closure Simulation</span>
+          </div>
+
+          <div class="field-row">
+            <div class="field-group">
+              <label for="selectCloseA">Road Endpoint A</label>
+              <select id="selectCloseA"></select>
+            </div>
+            <div class="field-group">
+              <label for="selectCloseB">Road Endpoint B</label>
+              <select id="selectCloseB"></select>
+            </div>
+          </div>
+
+          <button class="btn btn-danger btn-block" id="btnSimulateClosure">
+            Close Road &amp; Compute Detour
+          </button>
+
+          <div class="preset-list">
+            <span
+              class="preset-chip"
+              data-close-a="Ahmedabad"
+              data-close-b="Mumbai"
+              >Close Ahmedabad ↔ Mumbai (Detour)</span
+            >
+            <span
+              class="preset-chip"
+              data-close-a="Delhi"
+              data-close-b="Chandigarh"
+              >Close Delhi ↔ Chandigarh (Bridge)</span
+            >
+          </div>
+        </section>
+
+        <!-- Section 4: Edit Graph (Options 10, 11) -->
+        <section class="panel-section" style="border-bottom: none">
+          <div class="section-header">
+            <span class="section-title">4. Modify Network</span>
+          </div>
+
+          <!-- Add City -->
+          <div
+            class="field-row"
+            style="
+              grid-template-columns: 1fr auto;
+              align-items: end;
+              margin-bottom: 12px;
+            "
+          >
+            <div class="field-group">
+              <label for="inputNewCity">Add New City</label>
+              <input
+                type="text"
+                id="inputNewCity"
+                placeholder="e.g. Indore, Surat..."
+              />
+            </div>
+            <button class="btn" id="btnAddCity">Add City</button>
+          </div>
+
+          <!-- Add / Update Road -->
+          <div class="field-row">
+            <div class="field-group">
+              <label for="selectRoadA">From City</label>
+              <select id="selectRoadA"></select>
+            </div>
+            <div class="field-group">
+              <label for="selectRoadB">To City</label>
+              <select id="selectRoadB"></select>
+            </div>
+          </div>
+          <div
+            class="field-row"
+            style="
+              grid-template-columns: 1fr auto;
+              align-items: end;
+              margin-bottom: 0;
+            "
+          >
+            <div class="field-group">
+              <label for="inputRoadKm">Distance (km)</label>
+              <input
+                type="number"
+                id="inputRoadKm"
+                min="1"
+                max="9999"
+                value="300"
+              />
+            </div>
+            <button class="btn" id="btnAddRoad">Save Road</button>
+          </div>
+        </section>
+      </aside>
+
+      <!-- CENTER STAGE: Interactive Map & Data Views -->
+      <section class="center-stage">
+        <!-- Demo Step Banner (shown when Auto-Demo is active) -->
+        <div class="demo-bar" id="demoBar">
+          <span class="demo-step-text" id="demoStepText">Step 1 / 7</span>
+          <div class="demo-controls">
+            <button class="btn" id="btnDemoPrev">← Prev</button>
+            <button class="btn" id="btnDemoNext">Next Step →</button>
+            <button class="btn" id="btnDemoExit">Exit Demo</button>
+          </div>
+        </div>
+
+        <!-- Stage Toolbar (Switch between Map, Adjacency List, Distance Matrix) -->
+        <div class="stage-toolbar">
+          <div class="view-tabs">
+            <button class="tab-btn active" data-view="map">
+              Interactive Graph Map
+            </button>
+            <button class="tab-btn" data-view="adj">
+              Adjacency List (Menu #2)
+            </button>
+            <button class="tab-btn" data-view="matrix">
+              Distance Matrix (Menu #12)
+            </button>
+          </div>
+
+          <div class="canvas-controls" id="canvasControls">
+            <button
+              class="btn btn-sm"
+              id="btnToggleWeights"
+              title="Show/hide road distance labels"
+            >
+              Labels: ON
+            </button>
+            <button class="btn btn-sm" id="btnZoomIn" title="Zoom In">+</button>
+            <button class="btn btn-sm" id="btnZoomOut" title="Zoom Out">
+              −
+            </button>
+            <button
+              class="btn btn-sm"
+              id="btnFitView"
+              title="Center and fit map"
+            >
+              Fit View
+            </button>
+          </div>
+        </div>
+
+        <!-- View 1: Interactive Canvas Map -->
+        <div class="map-container" id="viewMap">
+          <canvas id="networkCanvas"></canvas>
+
+          <div class="map-hint-bar" id="mapHintBar">
+            Click a city to set <strong>From</strong> · Shift+Click (or
+            Right-Click) a city to set <strong>To</strong> · Drag nodes to
+            rearrange
+          </div>
+
+          <div class="map-legend">
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: #0d9488"></span>
+              <span>Dijkstra (Shortest km)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: #2563eb"></span>
+              <span>BFS (Fewest Roads)</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-swatch" style="background: #dc2626"></span>
+              <span>Closed Road</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background: #1e293b"></span>
+              <span>City Vertex</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- View 2: Adjacency List -->
+        <div class="data-view" id="viewAdj"></div>
+
+        <!-- View 3: Distance Matrix -->
+        <div class="data-view" id="viewMatrix"></div>
+      </section>
+
+      <!-- RIGHT SIDEBAR: Algorithm Output & Inspector -->
+      <aside class="sidebar-right">
+        <div class="output-header">
+          <span class="output-tag" id="outputTag">READY</span>
+          <h2 class="output-title" id="outputTitle">Network Overview</h2>
+        </div>
+        <div class="output-body" id="outputBody">
+          <!-- Populated dynamically by app.js -->
+        </div>
+      </aside>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>
